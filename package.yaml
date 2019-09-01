@@ -30,6 +30,10 @@ dependencies:
   - unordered-containers
   - attoparsec == 0.13.2.2
   - base-compat == 0.10.5
+  - scotty
+  - raw-strings-qq == 1.1
+  - template == 0.2.0.10
+
 library:
   source-dirs: src
 
