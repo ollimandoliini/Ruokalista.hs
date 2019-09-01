@@ -26,16 +26,9 @@ tupleFromInputString input =
     stringComponents = wordsWhen (=='-') input
 
 
-
-
--- getPort :: Either 
-
 main = scotty 3000 $
   get "/:date" $ do
     dateString <- param "date"
     let date = tupleFromInputString dateString
-    -- let date = (2019, 9, 2)
-
     content <- liftIO $ sequence $ fmap Requests.getMenus date
-    -- html $ mconcat ["<h1>Result</h1></br>", L.pack $ show content]
     html $ renderedHtml content
