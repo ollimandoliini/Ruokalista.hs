@@ -35,7 +35,7 @@ data LaituriCourse = LaituriCourse
     , title_en :: String
     , category :: String
     , price :: String
-    , properties :: String
+    , properties :: Maybe String
     , desc_fi :: String
     , desc_en :: String
     , desc_se :: String
@@ -67,12 +67,14 @@ $(deriveJSON defaultOptions ''LaituriCourse)
 
 
 -- getMenus :: MonadIO m => Maybe Date -> Maybe (m NormalizedMenu)
-getMenus :: MonadIO m => Date -> m NormalizedMenu
+getMenus :: Date -> IO (Maybe NormalizedMenu)
 getMenus date = do
-    menu <- liftIO $ getLaituriMenu date
-    let normalized = normalizeMenu $ fromJust menu
-    return normalized
-
+    mMenu <- getLaituriMenu date
+    return $ normalizeMenu <$> mMenu
+    -- case mMenu of
+    --     Nothing   -> error "No menu!"
+    --     Just menu -> return $ normalizeMenu menu
+    
 data NormalizedMenu = NormalizedMenu
     { restaurant :: String
     , foods :: [ NormalizedCourse ]
@@ -81,7 +83,7 @@ data NormalizedMenu = NormalizedMenu
 data NormalizedCourse = NormalizedCourse
     { title :: String
     , itemPrice :: String
-    , itemProperties :: String
+    -- , itemProperties :: String
     } deriving (Show, Eq)
 
 normalizeMenu :: LaituriMenu -> NormalizedMenu
@@ -89,6 +91,6 @@ normalizeMenu menu =
     NormalizedMenu {
         restaurant = ref_title $ meta menu
         , foods = map 
-        (\x -> NormalizedCourse { title = title_fi x, itemPrice = price x, itemProperties = properties x }) $ courses $ menu
+        (\x -> NormalizedCourse { title = title_fi x, itemPrice = price x }) $ courses $ menu
         }
 

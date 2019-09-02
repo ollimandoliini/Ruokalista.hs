@@ -22,7 +22,8 @@ htmlTemplate = T.pack
         </head>
         <body>
             <h1>Lounaspaikat Ruoholahdessa 🍔🍟🍕🌮🥙</h1>
-            $name
+            <h2>$name</h2> 
+            </br>
             $menu
         </body>
     </html>
@@ -37,13 +38,14 @@ context assocs x = maybe err id . lookup x $ assocs
 
 
 renderedHtml :: Maybe NormalizedMenu -> L.Text
+renderedHtml Nothing = "Not found"
 renderedHtml content =
   substitute htmlTemplate $ context [("name", maybe "Not found" (T.pack . restaurant) content)
                                       ,("menu", maybe "Not Found" menuItems content)]
 
 menuItems :: NormalizedMenu -> T.Text
 menuItems menu =
-  T.pack $ intercalate "</BR></BR>" (map (\x -> intercalate "</BR>" [title x, itemPrice x, itemProperties x]) (foods menu))
+  T.pack $ intercalate "</BR></BR>" (map (\x -> intercalate "</BR>" [title x, itemPrice x]) (foods menu))
 
 
 
