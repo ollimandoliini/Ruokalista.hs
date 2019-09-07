@@ -1,0 +1,1 @@
+web: ./dist/build/ruokalista-haskell/ruokaista-haskell-exe
