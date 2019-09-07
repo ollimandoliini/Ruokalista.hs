@@ -1,1 +1,1 @@
-web: ./dist/build/ruokalista-haskell/ruokaista-haskell-exe
+web: ./dist/build/ruokalista-haskell/ruokalista-haskell-exe
