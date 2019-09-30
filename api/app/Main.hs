@@ -2,7 +2,6 @@
 
 module Main where
 
-import           Render
 import           Requests                    (Date, LaituriCourse, LaituriMenu,
                                               LaituriMeta, NormalizedCourse,
                                               NormalizedMenu, getLaituriMenu,
@@ -57,18 +56,3 @@ main = do
       date'   <- liftIO date
       content <- liftIO $ Requests.getMenus date'
       Web.Scotty.json content
-
-    -- get "/" $ do
-    --   date    <- liftIO getDate
-    --   content <- liftIO $ Requests.getMenus date
-    --   html $ renderedHtml Props { date = date, menus = content }
-
-    -- get "/:date" $ do
-    --   dateString <- param "date"
-    --   let date =
-    --         fromMaybe <$> getDate <*> (return . tupleFromInputString) dateString
-    --   date'   <- liftIO date
-    --   content <- liftIO $ Requests.getMenus date'
-    --   html $ renderedHtml Props { date = date', menus = content }
-
-
