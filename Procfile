@@ -1,1 +1,1 @@
-web: ruokalista-haskell-exe
+web: stack run ruokalista-haskell-exe
