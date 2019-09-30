@@ -1,0 +1,1 @@
+ghcid -c "stack ghci ruokalista-haskell:exe:ruokalista-haskell-exe" -W -T main

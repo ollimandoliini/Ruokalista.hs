@@ -23,6 +23,7 @@ import           GHC.Generics                   ( Generic )
 import qualified Data.HashMap.Strict           as HM
 import           Data.Maybe
 import           Control.Monad.IO.Class
+import qualified Data.Text                     as T
 
 
 
@@ -54,9 +55,6 @@ data LaituriMenu = LaituriMenu
 
 type Date = (Integer, Int, Int) -- (year, month, day)
 
--- getCurrentDate :: IO (Integer, Int, Int)
--- getCurrentDate = getCurrentTime >>= return . toGregorian . utctDay
-
 
 getLaituriMenu :: Date -> IO (Maybe LaituriMenu)
 getLaituriMenu date = do
@@ -87,22 +85,28 @@ getMenus date = do
     let m = normalizeMenu <$> mMenu
     return $ catMaybes [m]
 
+-- instance ToJSON NormalizedMenu
+
+
 data NormalizedMenu = NormalizedMenu
-    { restaurant :: String
+    { restaurant :: T.Text
     , foods :: [ NormalizedCourse ]
-    } deriving (Show, Eq)
+    } deriving (Show, Eq, Generic)
 
 data NormalizedCourse = NormalizedCourse
-    { title :: String
-    , itemPrice :: String
-    -- , itemProperties :: String
-    } deriving (Show, Eq)
+    { title :: T.Text
+    , itemPrice :: T.Text
+    } deriving (Show, Eq, Generic)
+
 
 normalizeMenu :: LaituriMenu -> NormalizedMenu
 normalizeMenu menu = NormalizedMenu
-    { restaurant = ref_title $ meta menu
-    , foods      =
-        map (\x -> NormalizedCourse { title = title_fi x, itemPrice = price x })
-            $ courses menu
+    { restaurant = T.pack $ ref_title $ meta menu
+    , foods      = map
+                           (\x -> NormalizedCourse { title = T.pack $ title_fi x
+                                                   , itemPrice = T.pack $ price x
+                                                   }
+                           )
+                       $ courses menu
     }
 

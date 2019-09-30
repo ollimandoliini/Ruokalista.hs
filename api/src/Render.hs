@@ -40,35 +40,8 @@ context assocs x = fromMaybe err . lookup x $ assocs
 
 
 renderedHtml :: Props -> L.Text
--- renderedHtml Nothing = "Not found"
 renderedHtml props = substitute htmlTemplate
   $ context [("date", dateText), ("menus", menuText)]
-  -- [ ("name", maybe "Not found" (T.pack . restaurant) (menus props))
-  -- , ("restaurantName", restaurants (menus props))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
  where
   dateText =
     T.pack
@@ -84,12 +57,19 @@ restaurants menus = T.pack menuItems
 
 renderMenuItems :: NormalizedMenu -> String
 renderMenuItems menu =
-  "<h2>" ++ restaurantName ++ "</h2><div>" ++ menuItems ++ "</div>"
+  "<div><h2>"
+    ++ T.unpack restaurantName
+    ++ "</h2><div>"
+    ++ menuItems
+    ++ "</div></div>"
  where
   restaurantName = restaurant menu
   menuItems      = intercalate
     "</BR></BR>"
-    (map (\x -> intercalate "</BR>" [title x, itemPrice x]) (foods menu))
+    (map
+      (\x -> intercalate "</BR>" [T.unpack $ title x, T.unpack $ itemPrice x])
+      (foods menu)
+    )
 
 
 
