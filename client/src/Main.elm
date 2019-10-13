@@ -1,13 +1,11 @@
 module Main exposing (..)
 
 import Browser
-import Debug exposing (log)
-import Html exposing (Html, div, h1, h2, img, li, p, table, td, text, tr, ul)
-import Html.Attributes exposing (src)
+import Html exposing (Html, button, div, h1, h2, h3, li, text, ul)
+import Html.Attributes as Attrs exposing (..)
 import Http
-import Json.Decode as JD exposing (Decoder, field, index, list, map2, string)
+import Json.Decode as JD exposing (Decoder, field, list, map2, string)
 import List
-import Maybe exposing (..)
 import Task
 import Time exposing (..)
 
@@ -23,21 +21,22 @@ type RequestStatus
 
 
 type alias Model =
-    { date : Maybe Date
+    { envs : Flags
+    , date : Maybe Date
     , status : RequestStatus
     , menus : List Menu
     }
 
 
-init : ( Model, Cmd Msg )
-init =
-    let
-        initialDate =
-            "moro"
-    in
-    ( { date = Nothing, status = Loading, menus = [] }
+init : Flags -> ( Model, Cmd Msg )
+init flags =
+    ( { envs = flags, date = Nothing, status = Loading, menus = [] }
     , currentDate
     )
+
+
+type alias Flags =
+    { apiUrl : String }
 
 
 type alias Date =
@@ -48,11 +47,13 @@ type alias Date =
 
 
 type alias Menu =
-    { restaurant : String, foods : List MenuItem }
+    { restaurant : String
+    , foods : List MenuItem
+    }
 
 
 type alias MenuItem =
-    { title : String, itemPrice : String }
+    { title : String }
 
 
 
@@ -68,15 +69,11 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
-    let
-        _ =
-            Debug.log "moro" model
-    in
     case msg of
         GetMenus ->
             case model.date of
                 Just date ->
-                    ( model, getMenus date )
+                    ( model, getMenus date model.envs.apiUrl )
 
                 Nothing ->
                     ( model, Cmd.none )
@@ -94,7 +91,7 @@ update msg model =
                 dateFromTime =
                     { year = Time.toYear Time.utc time, month = monthToNumber (Time.toMonth Time.utc time), day = Time.toDay Time.utc time }
             in
-            ( { model | date = Just dateFromTime }, getMenus dateFromTime )
+            ( { model | date = Just dateFromTime }, getMenus dateFromTime model.envs.apiUrl )
 
         NoOp ->
             ( model, Cmd.none )
@@ -106,10 +103,12 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
-    div []
-        [ h1 [] [ text "Lounaspaikat Ruoholahdessa 🍔🍟🍕\u{1F32E}\u{1F959}" ]
-        , h2 [] [ text (dateToString model.date) ]
-        , viewMenus model
+    div [ id "root" ]
+        [ div [ class "main-wrap" ]
+            [ h1 [] [ text "Lounaspaikat Ruoholahdessa 🍔🍟🍕\u{1F32E}\u{1F959}" ]
+            , h3 [] [ text (dateToString model.date) ]
+            , viewMenus model
+            ]
         ]
 
 
@@ -122,7 +121,7 @@ viewMenus model =
         Failure ->
             div [] [ text "Failure" ]
 
-        Success result ->
+        Success _ ->
             if List.isEmpty model.menus then
                 text "Ei ruokalistoja tälle päivälle 😪"
 
@@ -134,12 +133,13 @@ viewMenu : Menu -> Html Msg
 viewMenu menu =
     let
         tableRow menuItem =
-            tr [] [ td [] [ text menuItem.title ], td [] [ text menuItem.itemPrice ] ]
+            li [ class "menu-item" ] [ text menuItem.title ]
     in
-    div []
-        [ h1 []
-            [ text menu.restaurant ]
-        , table []
+    div [ class "restaurant" ]
+        [ div [ class "titleBar" ]
+            [ h2 [] [ text menu.restaurant ]
+            ]
+        , ul []
             (List.map
                 tableRow
                 menu.foods
@@ -151,11 +151,11 @@ viewMenu menu =
 ---- PROGRAM ----
 
 
-main : Program () Model Msg
+main : Program Flags Model Msg
 main =
     Browser.element
         { view = view
-        , init = \_ -> init
+        , init = init
         , update = update
         , subscriptions = always Sub.none
         }
@@ -165,29 +165,24 @@ main =
 -- HTTP
 
 
-backendUrl =
-    "http://localhost:3001/api/"
-
-
-getMenus : Date -> Cmd Msg
-getMenus date =
+getMenus : Date -> String -> Cmd Msg
+getMenus date apiUrl =
     let
         dateString =
             String.fromInt date.year ++ "-" ++ String.fromInt date.month ++ "-" ++ String.fromInt date.day
     in
     Http.get
-        { url = backendUrl ++ dateString
+        { url = apiUrl ++ "api/" ++ dateString
         , expect = Http.expectJson ResultReceived menuDecoder
         }
 
 
 menuDecoder : Decoder (List Menu)
 menuDecoder =
-    list (JD.map2 Menu (field "restaurant" string) (field "foods" (list (JD.map2 MenuItem (field "title" string) (field "itemPrice" string)))))
+    list (JD.map2 Menu (field "restaurant" string) (field "foods" (list (JD.map MenuItem (field "title" string)))))
 
 
 
--- list (field "restaurant" string)
 -- UTILS
 
 
@@ -201,6 +196,7 @@ dateToString date =
             "No date"
 
 
+currentDate : Cmd Msg
 currentDate =
     Task.perform SetTime Time.now
 

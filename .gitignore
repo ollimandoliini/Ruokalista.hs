@@ -1,3 +1,4 @@
 .stack-work/
 ruokalista-haskell.cabal
 *~
+node_modules

@@ -2,25 +2,19 @@
 
 module Main where
 
-import           Requests                    (Date, LaituriCourse, LaituriMenu,
-                                              LaituriMeta, NormalizedCourse,
-                                              NormalizedMenu, getLaituriMenu,
-                                              getMenus)
+import           Requests                    (Date, getMenus)
 
-import           Control.Monad.IO.Class
-import           Data.Maybe                  (catMaybes, fromMaybe, listToMaybe)
+import           Control.Monad.IO.Class      (liftIO)
+import           Data.Maybe                  (fromMaybe)
 import           Web.Scotty
 
-import qualified Data.Text.Lazy              as L
 import           System.Environment
 
-import           Data.Aeson
 import           Data.Time.Calendar
 import           Data.Time.Clock
-import           GHC.Generics
 import           Network.Wai.Middleware.Cors
 
-tupleFromInputString :: String -> Maybe Requests.Date
+tupleFromInputString :: String -> Maybe Date
 tupleFromInputString input = if length stringComponents /= 3
   then Nothing
   else Just
@@ -32,19 +26,10 @@ tupleFromInputString input = if length stringComponents /= 3
   stringComponents        = words $ replaceDashesWithSpaces input
   replaceDashesWithSpaces = map (\c -> if c == '-' then ' ' else c)
 
-
-data LaituriMenu = LaituriMenu
-    { meta    :: LaituriMeta
-    , courses :: [LaituriCourse]
-    } deriving (Show, Eq)
-
 getDate :: IO Date
 getDate = toGregorian . utctDay <$> getCurrentTime
 
-instance ToJSON NormalizedMenu
-instance ToJSON NormalizedCourse
-
-
+main :: IO ()
 main = do
   port <- fmap (maybe 3001 read) (lookupEnv "PORT")
   scotty port $ do
